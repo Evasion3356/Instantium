@@ -1,0 +1,5 @@
+Copy this file to `.source-path.local` (already gitignored) and replace the line
+below with the absolute path to your own decompiled Darktide `scripts` folder.
+One line, no quotes, no trailing slash.
+
+D:\Backup\Stuff\Darktide-Source-Code\scripts

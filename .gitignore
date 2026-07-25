@@ -1,0 +1,8 @@
+# Per-developer path to a decompiled Darktide source tree, used only as a
+# read-only reference when working on this mod. Never commit a real path here
+# -- see AGENTS.md "Game source code" for the convention.
+.source-path.local
+
+# Local Claude Code settings (machine-specific)
+.claude/
+**/.vs/
