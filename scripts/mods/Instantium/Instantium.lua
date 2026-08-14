@@ -91,6 +91,11 @@ mod.on_disabled = function()
 end
 
 mod.on_game_state_changed = function(status, state_name)
+	if status == "exit" and state_name == "StateGame" then
+		unregister_events()
+		return
+	end
+
 	if not mod:is_enabled() or status ~= "enter" then
 		return
 	end
@@ -102,8 +107,14 @@ mod.on_game_state_changed = function(status, state_name)
 	end
 end
 
-mod.on_unload = function()
-	unregister_events()
+mod.on_unload = function(exit_game)
+	if exit_game then
+		-- EventManager is destroyed before ModManager triggers DMF's exit unload event.
+		registered_event_manager = nil
+	else
+		unregister_events()
+	end
+
 	mod:run_asset_preloaders("on_release")
 	mod:hub_handle_disabled()
 end
