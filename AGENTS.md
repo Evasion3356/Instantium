@@ -84,7 +84,7 @@ get_mod("Instantium"):register_asset_preloader(mod, {
 
 ## Memory tier system (`core/memory_probe.lua`)
 
-Darktide's sandboxed Lua has no native "how much RAM/VRAM does this machine have" API (checked against the decompiled source; nothing in `scripts/` exposes one). Detection shells out to the OS, the same `Elmodedo.lua.io`/`Elmodedo.lua.os` sandbox-escape scoreboard-ii already uses for filesystem access:
+Darktide's sandboxed Lua has no native "how much RAM/VRAM does this machine have" API (checked against the decompiled source; nothing in `scripts/` exposes one). Detection shells out to the OS through `Mods.lua.io`, the same sandbox escape DMF and scoreboard use for filesystem access. If that library or `io.popen` is unavailable, detection fails closed to the existing RAM-unknown fallback instead of blocking mod startup:
 
 - **RAM**: PowerShell `Get-CimInstance Win32_ComputerSystem` → `wmic ComputerSystem get TotalPhysicalMemory` (wmic is deprecated/absent on newer Windows) → `/proc/meminfo` (Proton/Linux). Reliable.
 - **VRAM**: `Win32_VideoController.AdapterRAM`, best-effort only. It's a 32-bit WMI field — GPUs with more than 4 GB VRAM commonly report it wrapped or as `~4294967295`. Values at or near that ceiling, or implausibly small, are treated as **undetected**, not trusted. There is no reliable vendor-neutral alternative (no `nvidia-smi`-equivalent that works across NVIDIA/AMD/Intel); if VRAM can't be detected, tiering falls back to the RAM-only result.

@@ -4,16 +4,10 @@ local mod = get_mod("Instantium")
 -- have" API (confirmed against the decompiled engine source -- see AGENTS.md).
 -- scoreboard-ii already proved the workaround for this class of problem
 -- (directory listing via io.popen, see its history_storage.lua): escape the
--- DMF sandbox to the real io/os libraries and shell out to the OS instead.
-local DMF = get_mod("DMF")
-
-local _io = DMF:persistent_table("_io")
-_io.initialized = _io.initialized or false
-if not _io.initialized then _io = DMF.deepcopy(Elmodedo.lua.io) end
-
-local _os = DMF:persistent_table("_os")
-_os.initialized = _os.initialized or false
-if not _os.initialized then _os = DMF.deepcopy(Elmodedo.lua.os) end
+-- DMF sandbox to the real io library and shell out to the OS instead.
+local mods = rawget(_G, "Mods")
+local lua_libraries = mods and mods.lua
+local _io = lua_libraries and lua_libraries.io
 
 local TIER_RANK = {
 	conservative = 1,

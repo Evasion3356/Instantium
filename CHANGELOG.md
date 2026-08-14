@@ -6,4 +6,5 @@
 - **Memory tier system** (`core/memory_probe.lua`) — auto-detects total system RAM (reliable) and GPU VRAM (best-effort, falls back to undetected on the known 32-bit `AdapterRAM` overflow for >4 GB cards) once per session, mapping to conservative/balanced/aggressive. Manual override via the "Preload Budget" dropdown.
 - **Extension API** (`core/preload_registry.lua`) — `mod:register_asset_preloader(owning_mod, definition)`, gated by the memory tier, pcall-isolated per registration.
 - **Squad loadout preloading** (`preload/squad_loadouts.lua`) — first extension built on the registry, and the actual expansion beyond InstantHub: preloads every human squadmate's equipped weapon/cosmetic packages, not just the local player's. Gated at `balanced` tier.
+- Fixed startup failing when the memory probe tried to access the nonexistent `Elmodedo` global instead of DMF's `Mods.lua.io` bridge.
 - Not yet tested in-game.
