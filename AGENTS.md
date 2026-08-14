@@ -84,11 +84,9 @@ get_mod("Instantium"):register_asset_preloader(mod, {
 
 ## Memory tier system (`core/memory_probe.lua`)
 
-Darktide's sandboxed Lua has no native "how much RAM/VRAM does this machine have" API (checked against the decompiled source; nothing in `scripts/` exposes one). Detection shells out to the OS through `Mods.lua.io`, the same sandbox escape DMF and scoreboard use for filesystem access. If that library or `io.popen` is unavailable, detection fails closed to the existing RAM-unknown fallback instead of blocking mod startup:
+Darktide exposes the renderer's current graphics-memory budget through native `Memory.vram_budget()` in MB. Auto maps that budget to conservative/balanced/aggressive using the 6/10 GB thresholds in `memory_probe.lua`. Total system RAM is not available through a verified native Lua API; do not restore PowerShell, WMIC, `io.popen`, FFI, or another external probe because GUI-launched commands can flash console windows and add platform/security failure modes. If the native budget is unavailable or invalid, Auto falls back to balanced.
 
-- **RAM**: PowerShell `Get-CimInstance Win32_ComputerSystem` → `wmic ComputerSystem get TotalPhysicalMemory` (wmic is deprecated/absent on newer Windows) → `/proc/meminfo` (Proton/Linux). Reliable.
-- **VRAM**: `Win32_VideoController.AdapterRAM`, best-effort only. It's a 32-bit WMI field — GPUs with more than 4 GB VRAM commonly report it wrapped or as `~4294967295`. Values at or near that ceiling, or implausibly small, are treated as **undetected**, not trusted. There is no reliable vendor-neutral alternative (no `nvidia-smi`-equivalent that works across NVIDIA/AMD/Intel); if VRAM can't be detected, tiering falls back to the RAM-only result.
-- Detection runs once per game session (cached in a persistent table) and combines to the *weaker* of the RAM tier and VRAM tier.
+- Detection runs once per game session and is cached in a versioned persistent table so development reloads can invalidate older probe formats.
 - `memory_tier_override` (Mod Options dropdown, default `"auto"`) lets the user force a tier, bypassing detection entirely.
 
 **Deliberate scope limit**: this gates the *extended* preloaders registered through `core/preload_registry.lua` — it does not touch `hub_caching`/`preload_hub`/`preload_psychanium`, which stay simple always-on-by-default checkboxes like InstantHub's. Don't wire the base hub cache into the tier system without discussing it first — those three settings are the proven, low-risk baseline; the tier system is for the new, heavier, optional stuff.
