@@ -31,7 +31,7 @@ The DMF framework lives at `../dmf/` (one directory up, shared, not gitignored â
 - `master` is the release branch and `develop` is the integration branch.
   Work on short-lived branches from current `develop` named
   `<github-user>/fix-<topic>`, `<github-user>/feat-<topic>`, or
-  `<github-user>/docs-<topic>`, then open a reviewed pull request to `develop`.
+  `<github-user>/docs-<topic>`, then open a focused pull request to `develop`.
 - Promote tested integration batches through a reviewed `develop` to `master`
   pull request. Never push development commits directly to either shared branch.
 - Do not commit, push, create a pull request, merge, tag, or publish unless the

@@ -44,9 +44,9 @@ never be committed.
 7. Inspect `git status`, `git diff`, and recent commits.
 8. Stage only intended Instantium files and use a focused commit message.
 9. Push the feature branch and open a pull request against `develop`.
-10. Obtain one approval from the other maintainer before squash-merging.
+10. Confirm the pull request acceptance criteria, then squash-merge to `develop`.
 11. Validate the combined `develop` tree before promoting it to `master` in a
-    separately reviewed pull request.
+    separate pull request approved by the other maintainer.
 
 Do not run Instantium and InstantHub together during runtime tests. Record the
 Darktide build, settings, scenario, observed result, and untested contexts in
