@@ -48,18 +48,20 @@ end
 local RANK = mod.MEMORY_TIER_RANK
 
 --- Invokes every registered preloader's `event_name` callback whose
---- `min_tier` is at or below the currently active tier. Failures are
---- pcall-isolated and logged per-preloader so a bug in one registration
---- (first- or third-party) cannot break another's or Instantium's own flow.
+--- `min_tier` is at or below the currently active tier. `on_release` always
+--- runs so a tier drop cannot strand resources loaded at the previous tier.
+--- Failures are pcall-isolated and logged per-preloader so a bug in one
+--- registration cannot break another's or Instantium's own flow.
 mod.run_asset_preloaders = function(self, event_name)
 	local active_tier = self:get_preload_tier()
 	local active_rank = RANK[active_tier] or RANK.conservative
+	local is_release = event_name == "on_release"
 
 	for name, entry in pairs(preloaders) do
 		local required_rank = RANK[entry.min_tier] or RANK.conservative
 		local callback = entry[event_name]
 
-		if callback and active_rank >= required_rank then
+		if callback and (is_release or active_rank >= required_rank) then
 			local ok, err = pcall(callback)
 
 			if not ok then
