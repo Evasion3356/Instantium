@@ -18,7 +18,7 @@ Instantium's hub/Psykhanium caching uses the same retention approach as InstantH
 | Squad loadout preloading | Auto (Balanced+) | Preloads teammates' equipped weapon/cosmetic packages so their gear renders in full detail immediately, not just your own. |
 | Show Notifications | ON | Brief on-screen confirmation when something finishes preloading. |
 
-**Preload Budget** (Mod Options): Auto (recommended), Conservative, Balanced, or Aggressive. Auto detects your system RAM and (best-effort) GPU VRAM once per session and picks a tier. This only affects the extended/optional preloading (like squad loadouts) — the three checkboxes above always do what they say regardless of tier.
+**Preload Budget** (Mod Options): Auto (recommended), Conservative, Balanced, or Aggressive. Auto reads Darktide's native graphics-memory budget once per session and picks a tier, falling back to Balanced if unavailable. This only affects the extended/optional preloading (like squad loadouts) — the three checkboxes above always do what they say regardless of tier.
 
 ## Requirements
 
