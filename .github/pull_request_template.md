@@ -30,7 +30,7 @@ their signatures, returns, lifecycle, and authority.
 
 ## Checklist
 
-- [ ] Branch started from current `master`.
+- [ ] Branch started from current `develop`.
 - [ ] Only intended Instantium files are changed.
 - [ ] Runtime Lua and `.mod` files pass syntax and LuaLS validation.
 - [ ] Hook/API contracts are source-verified where applicable.

@@ -28,9 +28,12 @@ The DMF framework lives at `../dmf/` (one directory up, shared, not gitignored â
 
 - The Instantium checkout is its own Git repository. Never stage, commit, or
   release files from sibling mods or the surrounding workspace.
-- `master` must remain releasable. Work on short-lived branches named
+- `master` is the release branch and `develop` is the integration branch.
+  Work on short-lived branches from current `develop` named
   `<github-user>/fix-<topic>`, `<github-user>/feat-<topic>`, or
-  `<github-user>/docs-<topic>`, then open a reviewed pull request to `master`.
+  `<github-user>/docs-<topic>`, then open a reviewed pull request to `develop`.
+- Promote tested integration batches through a reviewed `develop` to `master`
+  pull request. Never push development commits directly to either shared branch.
 - Do not commit, push, create a pull request, merge, tag, or publish unless the
   user explicitly requests that Git operation.
 - Before committing, inspect status, the complete diff, and recent commits;
@@ -40,10 +43,10 @@ The DMF framework lives at `../dmf/` (one directory up, shared, not gitignored â
 
 ### Release boundary
 
-Merging to `master` does not publish a release. A release requires an explicit
-maintainer request, consistent `Instantium.mod` and changelog versions, full
-release validation, runtime coverage appropriate to the change, archive
-inspection, and a matching version tag.
+Merging a reviewed `develop` promotion to `master` does not publish a release.
+A release requires an explicit maintainer request, consistent `Instantium.mod`
+and changelog versions, full release validation, runtime coverage appropriate
+to the change, archive inspection, and a matching version tag.
 
 The normal runtime payload is only `Instantium.mod` and
 `scripts/mods/Instantium/**`, plus intentionally selected user documentation.

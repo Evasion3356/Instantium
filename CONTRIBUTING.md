@@ -2,11 +2,12 @@
 
 ## Branch model
 
-`master` must always be releasable. Actual releases are identified by a
-version update, a validated release archive, and a matching Git tag; merging a
-pull request does not publish a release by itself.
+`master` is the release branch and must always be releasable. `develop` is the
+shared integration branch. Actual releases are identified by a version update,
+a validated release archive, and a matching Git tag; merging a pull request
+does not publish a release by itself.
 
-Create each change from an up-to-date `master` on a short-lived branch:
+Create each change from an up-to-date `develop` on a short-lived branch:
 
 ```text
 <github-user>/fix-<topic>
@@ -14,11 +15,10 @@ Create each change from an up-to-date `master` on a short-lived branch:
 <github-user>/docs-<topic>
 ```
 
-Open pull requests directly against `master`. Do not push development commits
-directly to `master`, force-push shared branches, or mix unrelated work in one
-pull request. Use a separate `develop` branch only if the maintainers later
-decide that `master` must exactly match the latest published release rather
-than remain continuously releasable.
+Open feature pull requests against `develop`. Do not push development commits
+directly to `develop` or `master`, force-push shared branches, or mix unrelated
+work in one pull request. After the integrated changes pass combined validation,
+open one reviewed promotion pull request from `develop` to `master`.
 
 ## Local checkout
 
@@ -35,16 +35,18 @@ never be committed.
 
 ## Change workflow
 
-1. Fetch `origin` and update local `master` with a fast-forward pull.
-2. Create a feature branch from that updated `master`.
+1. Fetch `origin` and update local `develop` with a fast-forward pull.
+2. Create a feature branch from that updated `develop`.
 3. Source-trace changed Darktide or DMF contracts before implementation.
 4. Make the smallest change that tests one stated hypothesis.
 5. Validate changed runtime Lua and `.mod` files statically.
 6. Test the affected game context and cleanup path when runtime behavior changes.
 7. Inspect `git status`, `git diff`, and recent commits.
 8. Stage only intended Instantium files and use a focused commit message.
-9. Push the feature branch and open a pull request against `master`.
+9. Push the feature branch and open a pull request against `develop`.
 10. Obtain one approval from the other maintainer before squash-merging.
+11. Validate the combined `develop` tree before promoting it to `master` in a
+    separately reviewed pull request.
 
 Do not run Instantium and InstantHub together during runtime tests. Record the
 Darktide build, settings, scenario, observed result, and untested contexts in
@@ -67,8 +69,8 @@ A pull request is ready to merge only when:
 
 ## Release boundary
 
-Merging to `master` means the source is considered releasable. It does not mean
-that a public release has been created.
+Merging a `develop` promotion to `master` means the source is considered
+releasable. It does not mean that a public release has been created.
 
 A release requires an explicit maintainer decision and must:
 
