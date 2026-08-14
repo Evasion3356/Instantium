@@ -7,4 +7,4 @@
 - **Extension API** (`core/preload_registry.lua`) — `mod:register_asset_preloader(owning_mod, definition)`, gated by the memory tier, pcall-isolated per registration.
 - **Squad loadout preloading** (`preload/squad_loadouts.lua`) — first extension built on the registry, and the actual expansion beyond InstantHub: preloads every human squadmate's equipped weapon/cosmetic packages, not just the local player's. Gated at `balanced` tier.
 - Fixed startup failing when the memory probe tried to access the nonexistent `Elmodedo` global instead of DMF's `Mods.lua.io` bridge.
-- Not yet tested in-game.
+- Smoke-tested in-game for startup and a smooth Mourningstar → Psykhanium → Mourningstar round trip; regular missions, squad loadouts, tier changes, and shutdown cleanup remain untested.
