@@ -45,7 +45,7 @@ get_mod("Instantium"):register_asset_preloader(mod, {
 })
 ```
 
-See [AGENTS.md](AGENTS.md) for the full contract (throttling expectations, pcall isolation, tier semantics).
+See [AGENTS.md](AGENTS.md) for the full contract (throttling expectations, pcall isolation, tier semantics) and [CONTRIBUTING.md](CONTRIBUTING.md) for the branch, review, and release workflow.
 
 ## Files
 
