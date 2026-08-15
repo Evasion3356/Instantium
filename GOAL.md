@@ -19,13 +19,13 @@ Raised by InstantHub's author (2026-07-25, `message.txt`), confirmed against the
 - [x] `core/preload_registry.lua` — `mod:register_asset_preloader` extension point.
 - [x] `preload/squad_loadouts.lua` — first real extension: preload every human squad member's equipped-loadout packages (weapon skins, cosmetics), not just your own like InstantHub does. Gated at `balanced` tier.
 - [x] Multi-developer source-reference convention (`.source-path.local`, gitignored).
-- [ ] `preload/mission_warmup.lua` — implementation complete on its feature branch; live vote, Quickplay, cancellation, and cleanup validation pending.
+- [x] `preload/mission_warmup.lua` — implemented and runtime-validated for fixed missions, Quickplay, Expedition, cancellation, tier scope, loading-finished release, and shutdown. Remaining contexts are tracked below.
 
 The current develop integration was smoke-tested for startup, hub/Psykhanium transitions, a regular mission, tier changes, disable/re-enable, package cleanup, and shutdown. InstantHub must remain disabled during every Instantium runtime test.
 
 ## Open questions for the next session
 
-1. **Mission asset warmup runtime validation** — backend vote updates now provide `mission.map`, circumstance, category, and Havoc flags for standard, Havoc, and Expedition selections. Quickplay intentionally waits for the confirmed `MechanismManager.wanted_transition` context because no concrete map exists earlier. Validate fixed mission, Quickplay, rejected/timeout vote, matchmaking cancellation, tier split, loading-finished release, and shutdown before marking the feature complete.
+1. **Remaining mission warmup runtime coverage** — backend vote updates provide `mission.map`, circumstance, category, and Havoc flags; Quickplay intentionally waits for confirmed mechanism assignment. Havoc, an explicit rejected/timeout vote, re-enable during active matchmaking, and an isolated pre-loading tier drop remain unobserved. Their source paths and cleanup behavior are verified; do not claim runtime coverage until each context is observed.
 
 2. **Store/inspection preview preloading** — separate, smaller idea, still open: Store/Armoury preview models (Brunt's, Melk's, Commissary) and inventory inspection/weapon marks previews. Needs its own engine-API research (does the store view resolve preview item packages via `ItemPackage.compile_item_dependencies`, or something store-specific?) — don't guess at the data shape, check `.source-path.local` first per AGENTS.md.
 3. **`on_squad_ready` cadence** — currently fires every frame in `StateGameplay` and relies on each registered callback to self-throttle. Reasonable for one registrant; revisit if this mod (or a third party) adds enough registrations that the per-frame registry iteration itself becomes measurable.
