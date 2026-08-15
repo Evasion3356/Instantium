@@ -70,11 +70,12 @@ Instantium/
     ├── Instantium_data.lua                    ← DMF settings widgets
     ├── Instantium_localization.lua
     ├── core/
-    │   ├── memory_probe.lua                   ← RAM/VRAM detection + tiering + manual override
+    │   ├── memory_probe.lua                   ← native graphics-budget tiering + manual override
     │   └── preload_registry.lua               ← mod:register_asset_preloader public API
     └── preload/
         ├── hub.lua                            ← Mourningstar + Psykhanium level caching (ported from InstantHub)
-        └── squad_loadouts.lua                 ← first registry consumer: squad members' equipped-loadout packages
+        ├── squad_loadouts.lua                 ← squad members' equipped-loadout packages
+        └── mission_warmup.lua                 ← selected mission level/theme/item/breed warmup
 ```
 
 ## Why DMF lifecycle slots are centralized in Instantium.lua
@@ -89,10 +90,10 @@ If you add a new file that needs to react to a DMF lifecycle event, give it an o
 ## Bootstrap load order (`Instantium.lua`)
 
 ```
-core/memory_probe → core/preload_registry → preload/hub → preload/squad_loadouts
+core/memory_probe → core/preload_registry → preload/hub → preload/squad_loadouts → preload/mission_warmup
 ```
 
-`preload/squad_loadouts.lua` calls `mod:register_asset_preloader` at file-load time (not inside a callback), so `core/preload_registry.lua` must already be loaded. Insert new files after their dependencies are loaded, same as scoreboard-ii's convention.
+Both extended preload modules call `mod:register_asset_preloader` at file-load time, so `core/preload_registry.lua` must already be loaded. `mission_warmup.lua` also owns independent hooks for backend vote updates and confirmed mechanism transitions; its ordinary lifecycle handlers are dispatched only by `Instantium.lua`.
 
 ## The extension point — `mod:register_asset_preloader`
 
@@ -120,6 +121,8 @@ Darktide exposes the renderer's current graphics-memory budget through native `M
 - `memory_tier_override` (Mod Options dropdown, default `"auto"`) lets the user force a tier, bypassing detection entirely.
 
 **Deliberate scope limit**: this gates the *extended* preloaders registered through `core/preload_registry.lua` — it does not touch `hub_caching`/`preload_hub`/`preload_psychanium`, which stay simple always-on-by-default checkboxes like InstantHub's. Don't wire the base hub cache into the tier system without discussing it first — those three settings are the proven, low-risk baseline; the tier system is for the new, heavier, optional stuff.
+
+Mission warmup is disabled at conservative. Balanced loads the assigned level plus theme and item dependencies; aggressive also loads the same global non-hub breed dependency set used by Darktide's `BreedLoader`. Quickplay has no concrete map at vote time and therefore starts only when the mechanism transition supplies `mission_name`. Expedition levels skip normal mission-theme packages because `MechanismExpedition` disables them and builds location themes separately.
 
 ## DMF mod conventions
 
