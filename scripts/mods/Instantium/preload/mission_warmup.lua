@@ -283,6 +283,31 @@ local function decode_mission_data(value)
 	return ok and data and data.mission or nil
 end
 
+local function handle_vote_assignment(params)
+	state.backend_mission_id = params.backend_mission_id
+
+	if params.qp == "true" then
+		release_packages()
+		state.target = nil
+		state.waiting_for_assignment = true
+
+		return
+	end
+
+	local mission_data = decode_mission_data(params.mission_data)
+	local havoc_theme = mission_data and flag_value(mission_data.flags, "havoc-theme-")
+	local is_havoc = havoc_theme ~= nil or string.find(params.mission_data or "", "havoc-rank", 1, true) ~= nil
+	local is_expedition = mission_data and mission_data.category == "expedition"
+
+	if mission_data and set_target(mission_data.map, mission_data.circumstance, nil, is_havoc, havoc_theme, is_expedition) then
+		return
+	end
+
+	release_packages()
+	state.target = nil
+	state.waiting_for_assignment = true
+end
+
 mod.mission_warmup_handle_vote_event = function(self, event)
 	local params = event and event.params
 	local is_target_vote = params and (params.template_name == VOTE_TEMPLATE or state.backend_mission_id ~= nil and state.backend_mission_id == params.backend_mission_id)
@@ -294,32 +319,15 @@ mod.mission_warmup_handle_vote_event = function(self, event)
 	local vote_state = event.state
 
 	if vote_state == "ONGOING" then
-		state.backend_mission_id = params.backend_mission_id
 		state.matchmaking_started = false
 		state.vote_observed = true
 		state.vote_committed = false
-
-		if params.qp == "true" then
-			release_packages()
-			state.target = nil
-			state.waiting_for_assignment = true
-
-			return
-		end
-
-		local mission_data = decode_mission_data(params.mission_data)
-		local havoc_theme = mission_data and flag_value(mission_data.flags, "havoc-theme-")
-		local is_havoc = havoc_theme ~= nil or string.find(params.mission_data or "", "havoc-rank", 1, true) ~= nil
-		local is_expedition = mission_data and mission_data.category == "expedition"
-
-		if mission_data and set_target(mission_data.map, mission_data.circumstance, nil, is_havoc, havoc_theme, is_expedition) then
-			return
-		end
-
-		release_packages()
-		state.target = nil
-		state.waiting_for_assignment = true
+		handle_vote_assignment(params)
 	elseif vote_state == "COMPLETED_APPROVED" then
+		if not state.target and not state.waiting_for_assignment then
+			handle_vote_assignment(params)
+		end
+
 		state.matchmaking_started = true
 		state.vote_observed = false
 		state.vote_committed = true
