@@ -93,7 +93,7 @@ If you add a new file that needs to react to a DMF lifecycle event, give it an o
 core/memory_probe → core/preload_registry → preload/hub → preload/squad_loadouts → preload/mission_warmup
 ```
 
-Both extended preload modules call `mod:register_asset_preloader` at file-load time, so `core/preload_registry.lua` must already be loaded. `mission_warmup.lua` also owns independent hooks for backend vote updates and confirmed mechanism transitions; its ordinary lifecycle handlers are dispatched only by `Instantium.lua`.
+Both extended preload modules call `mod:register_asset_preloader` at file-load time, so `core/preload_registry.lua` must already be loaded. `mission_warmup.lua` owns the backend vote hooks; the existing `hub.lua` mechanism hook dispatches confirmed transitions because DMF does not allow one mod to hook the same method twice. Ordinary lifecycle handlers are dispatched only by `Instantium.lua`.
 
 ## The extension point — `mod:register_asset_preloader`
 

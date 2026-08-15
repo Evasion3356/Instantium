@@ -626,6 +626,12 @@ mod:hook("MechanismManager", "wanted_transition", function(func, self, ...)
 		mod:start_psychanium_preload()
 	end
 
+	local mission_warmup_handler = mod.mission_warmup_handle_transition
+
+	if mission_warmup_handler then
+		mission_warmup_handler(mod, context)
+	end
+
 	return next_state, context
 end)
 

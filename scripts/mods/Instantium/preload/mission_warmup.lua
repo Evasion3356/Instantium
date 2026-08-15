@@ -435,14 +435,4 @@ mod:hook("PartyImmateriumManager", "_handle_party_game_state_update_event", func
 	return result
 end)
 
-mod:hook("MechanismManager", "wanted_transition", function(func, self)
-	local next_state, context = func(self)
-
-	if mod:is_enabled() then
-		mod:mission_warmup_handle_transition(context)
-	end
-
-	return next_state, context
-end)
-
 return mod
