@@ -15,6 +15,14 @@ load("preload/hub")
 load("preload/squad_loadouts")
 load("preload/mission_warmup")
 
+local function call_mission_warmup(method_name, ...)
+	local handler = mod[method_name]
+
+	if handler then
+		return handler(mod, ...)
+	end
+end
+
 local registered_event_manager = nil
 
 local function register_events()
@@ -48,7 +56,7 @@ mod.event_loading_finished = function()
 	end
 
 	mod:hub_handle_loading_finished()
-	mod:mission_warmup_handle_loading_finished()
+	call_mission_warmup("mission_warmup_handle_loading_finished")
 end
 
 mod.update = function()
@@ -58,7 +66,7 @@ mod.update = function()
 
 	register_events()
 	mod:hub_handle_update()
-	mod:mission_warmup_handle_update()
+	call_mission_warmup("mission_warmup_handle_update")
 
 	local state_name = Managers.presence and Managers.presence._current_game_state_name
 
@@ -79,20 +87,20 @@ mod.on_setting_changed = function(setting_id)
 		-- running; let each one decide what to release, then let the next
 		-- eligible refresh pick back up anything still allowed.
 		mod:run_asset_preloaders("on_release")
-		mod:mission_warmup_handle_setting_changed()
+		call_mission_warmup("mission_warmup_handle_setting_changed")
 	end
 end
 
 mod.on_enabled = function()
 	register_events()
 	mod:hub_handle_enabled()
-	mod:mission_warmup_handle_enabled()
+	call_mission_warmup("mission_warmup_handle_enabled")
 end
 
 mod.on_disabled = function()
 	unregister_events()
 	mod:run_asset_preloaders("on_release")
-	mod:mission_warmup_clear()
+	call_mission_warmup("mission_warmup_clear")
 	mod:hub_handle_disabled()
 end
 
@@ -110,7 +118,7 @@ mod.on_game_state_changed = function(status, state_name)
 
 	if state_name == "StateTitle" then
 		mod:run_asset_preloaders("on_release")
-		mod:mission_warmup_clear()
+		call_mission_warmup("mission_warmup_clear")
 	end
 end
 
@@ -123,7 +131,7 @@ mod.on_unload = function(exit_game)
 	end
 
 	mod:run_asset_preloaders("on_release")
-	mod:mission_warmup_clear()
+	call_mission_warmup("mission_warmup_clear")
 	mod:hub_handle_disabled()
 end
 
