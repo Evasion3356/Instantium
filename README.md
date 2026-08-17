@@ -2,7 +2,7 @@
 
 > Requisition it before you need it.
 
-Instantium keeps things you're about to need loaded instead of letting the game unload and reload them: the Mourningstar, the Psykhanium, the next selected mission, and your squadmates' equipped weapon skins and cosmetics. How much extended preloading it does scales to Darktide's graphics-memory budget.
+Instantium keeps package data for things you're about to need available instead of letting the game unload and reload it: the Mourningstar, the Psykhanium, the next selected mission, and your squadmates' equipped weapon skins and cosmetics. How much extended preloading it does scales to Darktide's graphics-memory budget. Package retention does not guarantee that all package data stays in physical RAM or that streamed texture mips stay resident in VRAM.
 
 ## ⚠️ Don't run this alongside InstantHub
 
@@ -15,11 +15,18 @@ Instantium's hub/Psykhanium caching uses the same retention approach as InstantH
 | Mourningstar Caching | ON | Keeps hub resources in memory after a mission. |
 | Preload Hub at Character Select | ON | Gets a head start before your first hub visit. |
 | Preload Psykhanium / Meat Grinder | ON | Same treatment for the training room. |
+| Runtime Texture / Mesh Warmup | ON | Requests streaming for approaching squad members, monsters, captains, specials, and elites. It pauses near the VRAM budget and never runs on dedicated servers. |
 | Squad loadout preloading | Auto (Balanced+) | Balanced preloads your party in the hub and your human mission squad. Aggressive expands the hub scope to every visible human player. |
-| Selected mission warmup | Auto (Balanced+) | Balanced warms the assigned level, theme, and item dependencies. Aggressive also warms the global non-hub breed dependencies. Quickplay starts only after matchmaking assigns a map. |
+| Selected mission warmup | Auto (Balanced+) | Balanced builds the source-defined package manifest for the assigned level, dependencies, game mode, HUD, mission views/intro, loading background, and selected circumstance/Havoc mutators. Aggressive also warms the global non-hub breed dependency set. Quickplay waits for an authoritative map assignment. |
 | Show Notifications | ON | Brief on-screen confirmation when something finishes preloading. |
 
 **Preload Budget** (Mod Options): Auto (recommended), Conservative, Balanced, or Aggressive. Auto reads Darktide's native graphics-memory budget once per session and picks a tier, falling back to Balanced if unavailable. This only affects extended/optional preloading such as squad loadouts and selected missions; the three checkboxes above always do what they say regardless of tier.
+
+Mission warmup submits at most four packages per frame with at most eight Instantium requests in flight, waits while the package manager is busy, and stops submitting as soon as official mission loading starts. Categories are separated by barriers so level packages become available before their source-defined item/theme dependencies are resolved. Missing package resources and failed submissions are recorded once and are not retried every frame; `get_mod("Instantium").mission_warmup_info()` returns a fresh compact status snapshot.
+
+Runtime texture/mesh warmup is a separate bounded system. It watches registered character units, keeps at most 32 candidates, submits at most one unit per frame and allows at most two units in flight. Candidates are selected between 15 and 40 metres, with squad members first, then monsters/captains, specials, and elites. It yields during package loading, for three seconds after cleanup, and whenever Windows VRAM telemetry is unavailable or reports at least 90% of the current renderer budget. An unexpected runtime error trips a session circuit breaker instead of repeating every frame. `get_mod("Instantium").streaming_warmup_info()` exposes compact counters, circuit-breaker state, and timeout/VRAM diagnostics. Native force-stream requests are temporary and do not prevent later texture eviction.
+
+For Expeditions, Instantium never regenerates a layout. It opportunistically copies concrete current-section levels and the immediately prior section's delayed-despawn levels, including their eligible themes and item dependencies, only when the mechanism's existing public level-spawner layout exposes them before loading handoff. One-section lookahead is intentionally excluded because source does not expose a reliable pre-handoff current-section lifecycle for it.
 
 ## Requirements
 
@@ -64,7 +71,9 @@ Instantium/
     └── preload/
         ├── hub.lua
         ├── squad_loadouts.lua
-        └── mission_warmup.lua
+        ├── mission_manifest.lua
+        ├── mission_warmup.lua
+        └── unit_stream_warmup.lua
 ```
 
 ## Changelog

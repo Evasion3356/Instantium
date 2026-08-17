@@ -154,8 +154,9 @@ local function preload_pkg(preload, name, loaded_callback, prioritize, warn_unav
 	end
 
 	local package_is_known = package_manager:package_is_known(name)
+	local application = rawget(_G, "Application")
 
-	if not package_is_known and (not Application or not Application.can_get_resource("package", name)) then
+	if not package_is_known and (not application or not application.can_get_resource("package", name)) then
 		preload.unavailable_packages[name] = {
 			callbacks = loaded_callback and { loaded_callback } or {},
 			prioritize = prioritize,
@@ -305,12 +306,14 @@ local function preload_level_theme(preload, level_name, theme_tag, theme_package
 end
 
 local function view_preload_policies()
-	local disable_preload = GameParameters.disable_view_preload
+	local game_parameters = rawget(_G, "GameParameters")
+	local disable_preload = game_parameters and game_parameters.disable_view_preload
+	local is_playstation = rawget(_G, "IS_PLAYSTATION") == true
 
 	return {
 		always_even_with_debug = true,
 		always = not disable_preload,
-		not_ps5 = not disable_preload and not IS_PLAYSTATION,
+		not_ps5 = not disable_preload and not is_playstation,
 	}
 end
 

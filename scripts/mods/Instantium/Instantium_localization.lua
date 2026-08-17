@@ -3,7 +3,13 @@ return {
 		en = "Instantium",
 	},
 	mod_description = {
-		en = "Requisitions Mourningstar, Psykhanium, and squad loadout resources ahead of when you need them, scaling how much it keeps warm to your system's RAM/VRAM so nothing pops in.",
+		en = "Preloads Mourningstar, Psykhanium, mission, and squad resources before they are needed, scaling extended warmup to Darktide's graphics-memory budget.",
+	},
+	runtime_stream_warmup = {
+		en = "Runtime Texture / Mesh Warmup",
+	},
+	runtime_stream_warmup_description = {
+		en = "Requests texture and mesh streaming before nearby squad members, monsters, specials, and elites are first seen. Enabled by default, but bounded and paused near the renderer's VRAM budget. This cannot permanently pin texture mips in VRAM.",
 	},
 	hub_caching = {
 		en = "Mourningstar Caching",
@@ -27,7 +33,7 @@ return {
 		en = "Preload Budget",
 	},
 	memory_tier_override_description = {
-		en = "How aggressively Instantium's extended preloaders (squad loadout textures, and anything other mods register) use spare memory. Auto detects your system RAM/VRAM once per session. This does not affect Mourningstar/Psykhanium caching above, which are always controlled by their own checkboxes.",
+		en = "How aggressively Instantium's extended preloaders use spare memory. Auto reads Darktide's native graphics-memory budget once per session and falls back to Balanced when unavailable. This does not affect Mourningstar/Psykhanium caching above, which is controlled by its own checkboxes.",
 	},
 	memory_tier_auto = {
 		en = "Auto (Recommended)",

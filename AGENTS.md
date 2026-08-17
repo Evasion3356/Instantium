@@ -4,7 +4,7 @@ Context file for AI coding agents. Read this before making any changes.
 
 ## Project overview
 
-**Instantium** is a [Darktide Mod Framework (DMF)](../dmf/) mod for Warhammer 40,000: Darktide. It's a resource-preloading framework: it keeps things you're about to need (Mourningstar, the Psykhanium, squad members' weapon/cosmetic textures) resident in RAM/VRAM instead of letting the game unload and reload them, and it auto-scales how much it keeps warm to the host machine's detected memory so it helps on a 64 GB rig without being the reason a 16 GB one starts paging.
+**Instantium** is a [Darktide Mod Framework (DMF)](../dmf/) mod for Warhammer 40,000: Darktide. It's a resource-preloading framework: it holds package references for things you're about to need (Mourningstar, the Psykhanium, missions, and squad loadouts) so their package data remains available instead of being unloaded and reloaded. It auto-scales extended preloading to Darktide's detected graphics-memory budget, but package references do not guarantee physical RAM/VRAM or streamed texture-mip residency.
 
 **Origin**: the base hub/Psykhanium caching (`preload/hub.lua`) is a direct port of [InstantHub](../InstantHub/)'s package-retention approach — same mechanism (hold an independent `Managers.package:load` reference so the refcount never hits zero across a hub↔mission transition; nothing hooks cleanup). **Do not run Instantium and InstantHub together** — they'd retain the same packages redundantly. Pick one; see README.md.
 
@@ -75,7 +75,9 @@ Instantium/
     └── preload/
         ├── hub.lua                            ← Mourningstar + Psykhanium level caching (ported from InstantHub)
         ├── squad_loadouts.lua                 ← squad members' equipped-loadout packages
-        └── mission_warmup.lua                 ← selected mission level/theme/item/breed warmup
+        ├── mission_manifest.lua               ← pure selected-mission package resolver
+        ├── mission_warmup.lua                 ← vote/target lifecycle + bounded manifest scheduler
+        └── unit_stream_warmup.lua              ← bounded gameplay texture/mesh pre-streaming
 ```
 
 ## Why DMF lifecycle slots are centralized in Instantium.lua
@@ -90,7 +92,7 @@ If you add a new file that needs to react to a DMF lifecycle event, give it an o
 ## Bootstrap load order (`Instantium.lua`)
 
 ```
-core/memory_probe → core/preload_registry → preload/hub → preload/squad_loadouts → preload/mission_warmup
+core/memory_probe → core/preload_registry → preload/hub → preload/squad_loadouts → preload/mission_warmup (loads preload/mission_manifest) → preload/unit_stream_warmup
 ```
 
 Both extended preload modules call `mod:register_asset_preloader` at file-load time, so `core/preload_registry.lua` must already be loaded. `mission_warmup.lua` owns the backend vote hooks; the existing `hub.lua` mechanism hook dispatches confirmed transitions because DMF does not allow one mod to hook the same method twice. Ordinary lifecycle handlers are dispatched only by `Instantium.lua`.
@@ -122,7 +124,13 @@ Darktide exposes the renderer's current graphics-memory budget through native `M
 
 **Deliberate scope limit**: this gates the *extended* preloaders registered through `core/preload_registry.lua` — it does not touch `hub_caching`/`preload_hub`/`preload_psychanium`, which stay simple always-on-by-default checkboxes like InstantHub's. Don't wire the base hub cache into the tier system without discussing it first — those three settings are the proven, low-risk baseline; the tier system is for the new, heavier, optional stuff.
 
-Mission warmup is disabled at conservative. Balanced loads the assigned level plus theme and item dependencies; aggressive also loads the same global non-hub breed dependency set used by Darktide's `BreedLoader`. Quickplay has no concrete map at vote time and therefore starts only when the mechanism transition supplies `mission_name`. Expedition levels skip normal mission-theme packages because `MechanismExpedition` disables them and builds location themes separately.
+Mission warmup is disabled at conservative. Balanced resolves the assigned level and its source-defined dependencies, game-mode packages, HUD packages, mission-preload view and intro packages/levels/dependencies, loading background, and selected circumstance/Havoc mutator assets. Aggressive also adds the same global non-hub breed dependency set used by Darktide's `BreedLoader`. Quickplay has no concrete map at vote time and therefore starts only when the mechanism transition supplies `mission_name`.
+
+`preload/mission_manifest.lua` is a pure resolver: it may require authoritative settings and call dependency helpers after relevant levels are loaded, but it must not call `Managers.package:load`, instantiate loaders/UI/worlds/gameplay, generate Expedition layouts, or retain runtime objects. `mission_warmup.lua` owns target/vote/handoff state, validates resource names, and schedules the resolver output with category barriers and fixed bounds. `event_loading_started` and `event_loading_finished` remain centrally registered and dispatched by `Instantium.lua`.
+
+Expedition discovery may only copy primitive package/theme/level names and eligibility flags from the existing mechanism's public `levels_spawner():expedition()` layout before handoff. It mirrors the current section plus the immediately prior section's delayed-despawn levels. Do not regenerate from a seed or retain the layout/spawner. Current source does not provide a reliable pre-handoff lifecycle for one-section lookahead, so that remains excluded. All mission warmup retention is package availability only; it does not imply full physical RAM/VRAM or texture-mip residency.
+
+Runtime texture/mesh warmup is independent of the package tier and defaults on under `runtime_stream_warmup`. It listens to `unit_registered`, but native submissions occur only in `StateGameplay` on rendering clients. Keep the hard bounds at one unit per frame, two units in flight, and 32 queued candidates unless runtime evidence justifies a change. Only remote squad roots and monster/captain/special/elite breeds are eligible, at 15-40 metres. Yield during package loading, for three seconds after cleanup, and when VRAM telemetry is unavailable/invalid or usage reaches 90% of budget. Native calls expose no cancellation or residency handle: callbacks must be generation-guarded, must never dereference captured units, and cleanup must drop all Lua unit references while delaying new submissions until old native work has timed out. The update path has a session circuit breaker; preserve it so a new native/runtime edge logs once and stops this feature instead of erroring every frame. Do not describe this as permanent VRAM pinning. A frame-time gate based on DMF's update argument was removed after runtime evidence showed that value was not usable as renderer frame time in this path.
 
 ## DMF mod conventions
 
