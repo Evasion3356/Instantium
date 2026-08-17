@@ -7,6 +7,12 @@ mod.data = {
 	options = {
 		widgets = {
 			{
+				setting_id = "runtime_stream_warmup",
+				type = "checkbox",
+				default_value = true,
+				tooltip = "runtime_stream_warmup_description",
+			},
+			{
 				setting_id = "hub_caching",
 				type = "checkbox",
 				default_value = true,

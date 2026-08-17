@@ -73,6 +73,13 @@ local function release_player_preload(unique_id)
 end
 
 local function refresh_player_preload(unique_id, profile, resolver, package_manager)
+	local entry = preloads[unique_id]
+	local mission_name = resolver._mission_name
+
+	if entry and entry.character_id == profile.character_id and entry.profile == profile and entry.mission_name == mission_name then
+		return
+	end
+
 	local ok, profile_packages = pcall(resolver.resolve_profile_packages, resolver, profile)
 
 	if not ok or not profile_packages then
@@ -87,8 +94,6 @@ local function refresh_player_preload(unique_id, profile, resolver, package_mana
 		end
 	end
 
-	local entry = preloads[unique_id]
-
 	if not entry or entry.character_id ~= profile.character_id then
 		if entry then
 			release_player_preload(unique_id)
@@ -97,6 +102,9 @@ local function refresh_player_preload(unique_id, profile, resolver, package_mana
 		entry = { character_id = profile.character_id, packages = {} }
 		preloads[unique_id] = entry
 	end
+
+	entry.profile = profile
+	entry.mission_name = mission_name
 
 	for package_name, id in pairs(entry.packages) do
 		if not desired[package_name] then
