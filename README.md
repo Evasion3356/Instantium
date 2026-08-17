@@ -15,10 +15,10 @@ Instantium's hub/Psykhanium caching uses the same retention approach as InstantH
 | Mourningstar Caching | ON | Keeps hub resources in memory after a mission. |
 | Preload Hub at Character Select | ON | Gets a head start before your first hub visit. |
 | Preload Psykhanium / Meat Grinder | ON | Same treatment for the training room. |
-| Squad loadout preloading | Auto (Balanced+) | Preloads teammates' equipped weapon/cosmetic packages so their gear renders in full detail immediately, not just your own. |
+| Squad loadout preloading | Auto (Balanced+) | Balanced preloads your party in the hub and your human mission squad. Aggressive expands the hub scope to every visible human player. |
 | Show Notifications | ON | Brief on-screen confirmation when something finishes preloading. |
 
-**Preload Budget** (Mod Options): Auto (recommended), Conservative, Balanced, or Aggressive. Auto detects your system RAM and (best-effort) GPU VRAM once per session and picks a tier. This only affects the extended/optional preloading (like squad loadouts) — the three checkboxes above always do what they say regardless of tier.
+**Preload Budget** (Mod Options): Auto (recommended), Conservative, Balanced, or Aggressive. Auto reads Darktide's native graphics-memory budget once per session and picks a tier, falling back to Balanced if unavailable. This only affects the extended/optional preloading (like squad loadouts) — the three checkboxes above always do what they say regardless of tier.
 
 ## Requirements
 
@@ -45,7 +45,7 @@ get_mod("Instantium"):register_asset_preloader(mod, {
 })
 ```
 
-See [AGENTS.md](AGENTS.md) for the full contract (throttling expectations, pcall isolation, tier semantics).
+See [AGENTS.md](AGENTS.md) for the full contract (throttling expectations, pcall isolation, tier semantics) and [CONTRIBUTING.md](CONTRIBUTING.md) for the branch, review, and release workflow.
 
 ## Files
 

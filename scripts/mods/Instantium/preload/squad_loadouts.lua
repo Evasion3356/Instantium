@@ -1,22 +1,34 @@
 local mod = get_mod("Instantium")
+local PlayerCompositions = require("scripts/utilities/players/player_compositions")
 
 -- First built-in consumer of core/preload_registry.lua, and the actual
 -- expansion beyond InstantHub's scope: InstantHub only ever preloads *your
 -- own* equipped profile. This resolves and retains equipped-loadout
 -- packages (weapon skins/materials, cosmetics -- whatever
 -- `resolve_profile_packages` says a profile depends on) for every
--- human player currently visible to you, hub or mission, so teammates'
--- weapons/gear don't pop in either.
+-- party member in the hub and every human squad member in a mission, so
+-- teammates' weapons/gear don't pop in either. The aggressive tier expands
+-- the hub scope to every visible human player.
 --
--- Gated at "balanced" tier: it's pure upside for texture pop-in, but scales
--- with squad size (up to 3 other players' worth of packages), so it's the
--- first thing held back on lower-memory machines rather than being
--- unconditionally on like the base hub cache.
+-- Gated at "balanced" tier: balanced keeps the hub scope to the actual party,
+-- while aggressive accepts the cost of every visible hub player's packages.
+-- Both tiers include every human squad member in missions.
 
 local REFRESH_INTERVAL = 5 -- seconds between resolve passes; cheap no-op in between.
 
 local preloads = {}
+local party_players = {}
 local next_refresh_time = 0
+
+local function players_to_preload(player_manager)
+	local game_mode = Managers.state and Managers.state.game_mode
+
+	if game_mode and game_mode:game_mode_name() == "hub" and mod:get_preload_tier() ~= "aggressive" then
+		return PlayerCompositions.players("party", party_players)
+	end
+
+	return player_manager:human_players()
+end
 
 local function local_profile_package_resolver()
 	local package_synchronization_manager = Managers.package_synchronization
@@ -127,15 +139,13 @@ local function refresh_all(dt_ignored)
 
 	local seen = {}
 
-	for _, player in pairs(player_manager:players()) do
-		if player.is_human_controlled and player:is_human_controlled() then
-			local unique_id = player:unique_id()
-			local profile = player:profile()
+	for _, player in pairs(players_to_preload(player_manager)) do
+		local unique_id = player:unique_id()
+		local profile = player:profile()
 
-			if unique_id and profile and profile.character_id then
-				seen[unique_id] = true
-				refresh_player_preload(unique_id, profile, resolver, package_manager)
-			end
+		if unique_id and profile and profile.character_id then
+			seen[unique_id] = true
+			refresh_player_preload(unique_id, profile, resolver, package_manager)
 		end
 	end
 
